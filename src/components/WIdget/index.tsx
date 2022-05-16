@@ -1,25 +1,35 @@
 // rnbc
-import React, { useRef } from 'react';
-import { TouchableOpacity } from 'react-native';
-import { ChatTeardropDots } from 'phosphor-react-native';
-import BottomSheet from '@gorhom/bottom-sheet/';
+import React, { useRef, useState } from "react";
+import { TouchableOpacity } from "react-native";
+import { ChatTeardropDots } from "phosphor-react-native";
+import BottomSheet from "@gorhom/bottom-sheet/";
 
+import { styles } from "./styles";
+import { theme } from "../../theme";
+import { gestureHandlerRootHOC } from "react-native-gesture-handler";
+import { Options } from "../Options";
+import { feedbackTypes } from "../../utils/feedbackTypes";
+import { Form } from "../Form";
+import { Success } from "../Success";
 
-import { styles } from './styles';
-import { theme } from '../../theme';
-import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
-import { Options } from '../Options';
-import { feedbackTypes } from '../../utils/feedbackTypes';
-import { Form } from '../Form';
-import { Success } from '../Success';
-
-export type feedbackType = keyof typeof feedbackTypes
+export type FeedbackType = keyof typeof feedbackTypes;
 
 function Widget() {
-  const bottomSheetRef = useRef<BottomSheet>(null)
+  const [feedbackType, setFeedbackType] = useState<FeedbackType | null>(null);
+  const [feedbackSent, setFeedbackSent] = useState(false);
+  const bottomSheetRef = useRef<BottomSheet>(null);
 
-  function handleOpen(){
-    bottomSheetRef.current?.expand()
+  function handleOpen() {
+    bottomSheetRef.current?.expand();
+  }
+
+  function handleFeedbackReset() {
+    setFeedbackType(null);
+    setFeedbackSent(false);
+  }
+
+  function handleFeedbackSent() {
+    setFeedbackSent(true);
   }
 
   return (
@@ -27,25 +37,35 @@ function Widget() {
       <TouchableOpacity style={styles.button} onPress={handleOpen}>
         <ChatTeardropDots
           size={25}
-          weight={'bold'}
+          weight={"bold"}
           color={theme.colors.text_on_brand_color}
         />
       </TouchableOpacity>
 
-      <BottomSheet 
-        ref={bottomSheetRef} 
+      <BottomSheet
+        ref={bottomSheetRef}
         snapPoints={[1, 280]}
         backgroundStyle={styles.modal}
         handleIndicatorStyle={styles.indicator}
       >
-     {/*    <Options /> */}
-      <Form 
-        feedbackType='BUG'
-      />
-      <Success/>
+        {feedbackSent ? (
+          <Success onSendAnotherFeedback={handleFeedbackReset} />
+        ) : (
+          <>
+            {feedbackType ? (
+              <Form
+                feedbackType={feedbackType}
+                onFeedbackCanceled={handleFeedbackReset}
+                onFeedbackSent={handleFeedbackSent}
+              />
+            ) : (
+              <Options onFeedbackTypeChanged={setFeedbackType} />
+            )}
+          </>
+        )}
       </BottomSheet>
     </>
   );
 }
 
-export default gestureHandlerRootHOC(Widget)
+export default gestureHandlerRootHOC(Widget);
